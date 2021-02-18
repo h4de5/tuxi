@@ -1,5 +1,11 @@
-import json, requests, re
+import requests
 from bs4 import BeautifulSoup
+
+# how to install:
+# python3 -m pip install virtualenv
+# python3 -m virtualenv virtualenv
+# source virtualenv/activate
+# python3 -m pip install requests beautifulsoup4
 
 user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0"
 google_url = "https://www.google.com/search?hl=en_US"
@@ -9,9 +15,6 @@ google_url = "https://www.google.com/search?hl=en_US"
 # TRANSLATE
 # query = "what is thank you in italian" # OK <pre class="tw-data-text tw-text-large XcVN5d tw-ta" data-placeholder="Translation" id="tw-target-text" style="text-align:left"><span lang="it">grazie</span></pre>
 # query = "Vais para cascais? em ingles" # OK
-
-# KNOWLEDGE GRAPH
-query = "the office cast" # OK
 
 # MATH
 # query = "35 euro to bitcoin" # OK <div class="dDoNo ikb4Bb vk_bk gsrt gzfeS"><span class="DFlfde SwHCTb" data-precision="5" data-value="8.0512905095E-4">0,00081</span> <span class="MWvIVe" data-mid="/m/05p0rrx" data-name="Bitcoin">Bitcoin</span></div>
@@ -24,6 +27,9 @@ query = "the office cast" # OK
 
 # WEATHER
 # query = "how is the weather in london" # OK <span class="vk_gy vk_sh" id="wob_dc">Clear with periodic clouds</span>
+
+# KNOWLEDGE GRAPH
+query = "the office cast" # OK
 
 print("Question: ", query)
 
