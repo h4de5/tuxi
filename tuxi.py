@@ -1,9 +1,16 @@
 #!/usr/bin/env python
 # vim: set fileencoding=utf8 :
 
-import sys, getopt
+import sys, getopt, locale
 import requests
 from bs4 import BeautifulSoup
+
+
+###############################
+#####      Constants      #####
+###############################
+
+LANGUAGE = "de_DE"
 
 
 def help_text():
@@ -52,6 +59,9 @@ def error_msg(message):
 #####       Defaults      #####
 ###############################
 
+# system language fallback
+LANG, encoding = [LANGUAGE, 'UTF-8'] if LANGUAGE else locale.getdefaultlocale()
+
 # color codes
 N = "\033[0m"     # Reset
 R = "\033[1;31m"  # Red
@@ -63,7 +73,6 @@ C = "\033[1;36m"  # Cyan
 # options
 raw = False
 quiet = False
-language = "en_US"
 query = []
 
 
@@ -84,7 +93,7 @@ def output(message):
 # -r : raw search result
 # -q : silences greeting and did you mean
 def getopts(argv):
-    global raw, quiet, query, language
+    global raw, quiet, query, LANG
     try:
         opts, args = getopt.getopt(argv, "hrql:")
     except getopt.GetoptError:
@@ -100,7 +109,7 @@ def getopts(argv):
         elif opt == '-q':
             quiet = True
         elif opt == '-l':
-            language = arg
+            LANG = arg
 
     query = ' '.join(args).strip()
 
@@ -143,7 +152,7 @@ if not query:
 ##############################
 
 user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0"
-google_url = "https://www.google.com/search?hl=" + language
+google_url = "https://www.google.com/search?hl=" + LANG
 
 # Response from Google via cURL (-G: get, -s: silent)
 # google_html=$(curl -Gs --compressed "$google_url" --user-agent "$user_agent" --data-urlencode "q=$query")
@@ -164,9 +173,7 @@ google_html = BeautifulSoup(google_html_raw.text, "html.parser")
 # Translate
 # Knowledge Graph - right
 
-
-
-
+print("language", LANG)
 
 # did you mean ( eg: linux torvalds ) Because we all know his real name is linux, not linus.
 # silenced if quiet=true
