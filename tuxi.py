@@ -3,6 +3,7 @@
 
 import sys, getopt, locale
 import requests
+import textwrap
 from bs4 import BeautifulSoup
 
 
@@ -37,12 +38,12 @@ def help_text():
 #     done
 
 
-def info_msg(message):
-    print("%s>%s %s" % (G, N, message))
+def info_msg(*message):
+    print("%s>%s %s" % (G, N, ''.join(message)))
 
 
-def error_msg(message):
-    print("%s%s%s" % (R, message, N))
+def error_msg(*message):
+    print("%s%s%s" % (R, ''.join(message), N))
 
 
 #############################
@@ -77,12 +78,12 @@ query = []
 
 
 # search result output format (changes if raw=true)
-def output(message):
+def output(*message):
     global raw
     if raw:
-        print(message)
+        print(''.join(message))
     else:
-        print("%s---%s\n%s\n%s---%s" % (G, N, message, G, N))
+        print("%s---%s\n%s\n%s---%s" % (G, N, ''.join(message), G, N))
 
 
 #############################
@@ -173,8 +174,6 @@ google_html = BeautifulSoup(google_html_raw.text, "html.parser")
 # Translate
 # Knowledge Graph - right
 
-print("language", LANG)
-
 # did you mean ( eg: linux torvalds ) Because we all know his real name is linux, not linus.
 # silenced if quiet=true
 # if [ $quiet = "false" ]; then
@@ -192,182 +191,120 @@ if not quiet:
 math = google_html.find("span", class_="qv3Wpe") or google_html.find("div", class_="vrBOv") or google_html.find("div", class_="ikb4Bb")
 math and output(math.text)
 
-# # Knowledge Graph - top (list) ( eg: the office cast )
+
+# # Knowledge Graph - top (list) ( eg: the office cast, us presidents )
 # kno_top=$(echo "$google_html" | pup 'div.dAassd json{}'  | jq -r '.[] | .children | .[] | .text' | sed ':a;N;$!ba;s/\n/ /g' | sed 's/null/\n/g' | awk '{$1=$1;print "* " $0}' | sed '/^* $/d'| recode html..ISO-8859-1)
 # [ -n "$kno_top" ] && output "$kno_top" && exit 0
+kno_top = google_html.find_all("div", class_="dAassd")
+if kno_top:
+    result = ""
+    for element in kno_top:
+        # print("children:", element.contents)
+        result += "\n* "
+        for subelement in element.contents:
+            if subelement["class"] == ["cp7THd"]:
+                result += " (" + subelement.text + ")"
+            else:
+                result += subelement.text.strip() + " "
+    result and output(result.strip())
 
 
 # # Basic Answers ( eg: tuxi christmas day )
 # basic="$(echo "$google_html" | pup 'div.zCubwf text{}' | tr -d '\n' | recode html..ISO-8859-1)"
 # [ -n "$basic" ] && output "$basic" && exit 0
+basic = google_html.find("div", class_="zCubwf")
+basic and output(basic.text)
 
 
 # # Rich Answers ( eg: elevation of mount everest )
 # rich=$(echo "$google_html" | pup 'div.XcVN5d text{}' | recode html..ISO-8859-1)
 # [ -n "$rich" ] && output "$rich" && exit 0
+rich = google_html.find("div", class_="XcVN5d")
+rich and output(rich.text)
 
 
 # # Featured Snippets ( eg: who is garfield )
 # feat="$(echo "$google_html" | pup 'span.hgKElc text{}' | tr -d '\n' | recode html..ISO-8859-1 | tr ' ' '\0' | xargs -0 -n10)"
 # [ -n "$feat" ] && output "$feat" && exit 0
+feat = google_html.find("span", class_="hgKElc")
+feat and output(textwrap.fill(feat.text))
 
 
 # # Lyrics ( eg: gecgecgec lyrics )
 # lyrics="$(echo "$google_html" | pup 'div.bbVIQb text{}' | recode html..ISO-8859-1)"
 # [ -n "$lyrics" ] && output "$lyrics" && exit 0
+# #Lyrics for US users, above does not work for US
+# lyrics="$(echo "$google_html" | pup 'span[jsname="YS01Ge"] text{}' | recode html..ISO-8859-1)"
+# [ -n "$lyrics" ] && output "$lyrics" && exit 0
+lyrics = google_html.find("div", class_="bbVIQb")
+if lyrics:
+    lyrics2 = lyrics.find_all("span")
+    result = ""
+    for element in lyrics2:
+        result += element.text + "\n"
+    result and output(result.strip())
 
 
 # # Weather ( eg: weather new york)
-# weather="$(echo "$google_html" | pup 'div.TylWce text{}' | sed -e '1 s/$/ ºC/' -e '2 s/$/ ºF/' | recode html..ISO-8859-1)"
+# weather="$(echo "$google_html" | pup 'div.UQt4rd json{}' | jq -r '.. | .text?, .alt?'| sed '/null/d' |  sed '$!N; /^\(.*\)\n\1$/!P; D' | sed '4,5d;2s/.*/&ºC/;2,${N;s/\n/\t/;};3s/.*/&ºF/;$s/\t/\t\t/' | recode html..ISO-8859-1)"
 # [ -n "$weather" ] && output "$weather" && exit 0
+# TODO
+weather = google_html.find("div", class_="UQt4rd")
+if weather:
+    weather2 = weather.find_all("span", class_="wob_t")
+    result = ""
+    for element in weather2:
+        if "style" not in element or element["style"].find("display:none") == -1:
+            result += element.text + " "
+    result and output(result.strip())
+# weather and print(weather.prettify())  # output(weather.contents)
+
+weather = google_html.find("span", class_="vk_gy")
+weather and output(weather.text)
 
 
-# # Units Conversion ( eg: 1m into 1 cm )
+# # Units Conversion ( eg: 1m into 1 cm, 35 euro to bitcoin, (30l * 40h) / 0.2l/min)
 # unit="$(echo "$google_html" | pup '#NotFQb json{}' | jq -r '.[] | .children | .[0] | .value' | recode html..ISO-8859-1)"
 # [ -n "$unit" ] && output "$unit" && exit
+unit = google_html.find("", id="NotFQb")
+unit and output(unit.text)
+unit = google_html.find_all("input", class_="vXQmIe")
+unit and output(unit[1]["value"])
 
 
 # # Currency Conversion ( eg: 1 USD in rupee )
 # currency="$(echo "$google_html" | pup '.SwHCTb text{}' | tr -d '\n' | tr ' ' '\0' | recode html..ISO-8859-1)"
 # [ -n "$currency" ] && output "$currency" && exit
+currency = google_html.find("", id="SwHCTb")
+currency and output(currency.text)
 
 
-# # Translate ( eg: Vais para cascais? em ingles )
+# # Translate ( eg: Vais para cascais? em ingles, what is thank you in italian)
 # trans="$(echo "$google_html" | pup 'pre.XcVN5d json{}' | jq -r '[.[] | .children | .[] | select(.class!="BCGytf")][1] | .text' | sed 's/null//g' | recode html..ISO-8859-1)"
 # [ -n "$trans" ] && output "$trans" && exit
+trans = google_html.find("div", class_="g9WsWb")
+if trans:
+    trans = trans.find("pre", class_="XcVN5d")
+    trans and print(trans.text)
 
 
 # # Knowledge Graph - right ( eg: the office )
 # kno_right="$(echo "$google_html" | pup 'div.kno-rdesc span' | sed -n '2p' | awk '{$1=$1;print}' | recode html..ISO-8859-1 | tr ' ' '\0' | xargs -0 -n10)"
 # [ -n "$kno_right" ] && output "$kno_right" && exit 0
-
-
-# Else
-# error_msg "No Result!" && exit 1
-
-
-exit(0)
-
-# how to install:
-# python3 -m pip install virtualenv
-# python3 -m virtualenv virtualenv
-# source virtualenv/bin/activate
-# python3 -m pip install requests beautifulsoup4
-
-# DID YOU MEAN
-# query = "how old is linux torvalds"
-
-# TRANSLATE
-# query = "what is thank you in italian" # OK <pre class="tw-data-text tw-text-large XcVN5d tw-ta" data-placeholder="Translation" id="tw-target-text" style="text-align:left"><span lang="it">grazie</span></pre>
-# query = "Vais para cascais? em ingles" # OK
-
-# MATH
-# query = "35 euro to bitcoin" # OK <div class="dDoNo ikb4Bb vk_bk gsrt gzfeS"><span class="DFlfde SwHCTb" data-precision="5" data-value="8.0512905095E-4">0,00081</span> <span class="MWvIVe" data-mid="/m/05p0rrx" data-name="Bitcoin">Bitcoin</span></div>
-# query = "(30l * 40h) / 0.2l/min" # OK <div class="dDoNo vrBOv vk_bk">2.38538521 × 10<sup>-28</sup> m<sup>2</sup> kg</div>
-# query = "log_2(3) * pi^e" # OK <span jsname="VssY5c" class="qv3Wpe" id="cwos">35.5969227814</span>
-
-# RANDOM
-# query = "flip a coin" # <div jsname="DyVWtc" class="PmF7Ce" aria-hidden="true">Heads</div>
-# query = "roll a dice" #
-
-# WEATHER
-# query = "how is the weather in london" # OK <span class="vk_gy vk_sh" id="wob_dc">Clear with periodic clouds</span>
-
-# KNOWLEDGE GRAPH
-# query = "the office cast" # OK
-
-# query = "wie alt ist linux torvalds"
-
-# print("Question: ", query)
-
-headers = {'user-agent': user_agent}
-
-# Response from Google via cURL (-G: get, -s: silent)
-# google_html=$(curl -Gs --compressed "$google_url" --user-agent "$user_agent" --data-urlencode "q=$query")
-
-## Snippet Priority ##
-# Did you mean
-# Math
-# Knowledge Graph - top
-# ?
-# Rich Answers
-# Featured Snippets
-# Google Translate
-# Lyrics
-# Knowledge Graph - right
-
-google_html = requests.get(google_url, params={'q': query}, headers=headers)
-html = BeautifulSoup(google_html.text, "html.parser")
-
-did_you_mean = html.find("a", class_="gL9Hy")
-if did_you_mean:
-    query = did_you_mean.text
-    print("did you mean: ", query)
-    google_html = requests.get(google_url, params={'q': query}, headers=headers)
-    html = BeautifulSoup(google_html.text, "html.parser")
-
-math = html.find("span", class_="qv3Wpe") or html.find("div", class_="vrBOv") or html.find("div", class_="ikb4Bb")
-if math:
-    print("math answer: ", math.text)
-
-rich = html.find("div", class_="XcVN5d") or (html.find("div", class_="g9WsWb") and html.find("div", class_="g9WsWb").find("pre", class_="XcVN5d"))
-if rich:
-    print("rich answer: ", rich.text)
-
-# # Google Translate ( eg: Vais para cascais? em ingles )
-# trans="$(echo "$google_html" | pup 'pre.XcVN5d json{}' | jq -r '[.[] | .children | .[] | select(.class!="BCGytf")][1] | .text' | recode html..ISO-8859-1)"
-# [ -n "$trans" ] && output "$trans" && exit
-
-# # Rich Answers ( eg: elevation of mount everest )
-# rich=$(echo "$google_html" | pup 'div.XcVN5d text{}' | recode html..ISO-8859-1)
-# [ -n "$rich" ] && output "$rich" && exit 0
-
-feat = html.find("span", class_="hgKElc")
-if feat:
-    print("feat answer: ", feat.text)
-
-# # Featured Snippets ( eg: who is garfield )
-# feat="$(echo "$google_html" | pup 'span.hgKElc text{}' | tr -d '\n' | recode html..ISO-8859-1 | tr ' ' '\0' | xargs -0 -n10)"
-# [ -n "$feat" ] && output "a$feat" && exit 0
-
-kno_top = html.find_all("div", class_="dAassd")
-if kno_top:
-    print("knot answer: ")
-    for element in kno_top:
-        print("* ", element.div.text, "..", element.div.next_sibling.text)
-
-# # Knowledge Graph - top (list) ( eg: the office cast )
-# kno_top=$(echo "$google_html" | pup 'div.dAassd json{}'  | jq -r '.[] | .children | .[] | .text' | sed ':a;N;$!ba;s/\n/ /g' | sed 's/null/\n/g' | awk '{$1=$1;print "* " $0}' | sed '/^* $/d'| recode html..ISO-8859-1)
-# [ -n "$list" ] && output "$kno_top" && exit 0
-
-
-res1 = html.find("div", class_="zCubwf")
-if res1:
-    print("answer: ", res1.text)
-
-# # ?
-# res1="$(echo "$google_html" | pup 'div.zCubwf text{}' | tr -d '\n' | recode html..ISO-8859-1)"
-# [ -n "$res1" ] && output "$res1" && exit 0
-
-lyrics = html.find("div", class_="bbVIQb")
-if lyrics:
-    print("lyrics answer: ", lyrics.text)
-
-# # Lyrics ( eg: gecgecgec lyrics )
-# lyrics="$(echo "$google_html" | pup 'div.bbVIQb text{}' | recode html..ISO-8859-1)"
-# [ -n "$lyrics" ] && output "$lyrics" && exit 0
-
-kno_right = html.find("div", class_="kno-rdesc") and html.find("div", class_="kno-rdesc").find("span")
+kno_right = google_html.find("div", class_="kno-rdesc")
 if kno_right:
-    print("knor answer: ", kno_right.text)
-    # for element in kno_right:
-    #     print("knor answer: ", element.span.text)
-
-# # Knowledge Graph - right ( eg: the office )
-# kno_right="$(echo "$google_html" | pup 'div.kno-rdesc span' | sed -n '2p' | awk '{$1=$1;print}' | recode html..ISO-8859-1 | tr ' ' '\0' | xargs -0 -n10)"
-# [ -n "$kno_right" ] && output "$kno_right" && exit 0
+    kno_right = kno_right.find("span")
+    kno_right and print(kno_right.text)
 
 
-weather = html.find("span", class_="vk_gy")
-if weather:
-    print("weather answer: ", weather.text)
+# does not work, because result is set in javascript
+random = google_html.find_all("div", class_="PmF7Ce")
+if random:
+    result = ""
+    for element in random:
+        if element["aria-hidden"] == "false":
+            result += element.text
+    random and print(random)
+
+# # Else
+# error_msg "No Result!" && exit 1
