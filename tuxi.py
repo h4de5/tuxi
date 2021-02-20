@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 # how to install:
 # python3 -m pip install virtualenv
 # python3 -m virtualenv virtualenv
-# source virtualenv/activate
+# source virtualenv/bin/activate
 # python3 -m pip install requests beautifulsoup4
 
 user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0"
@@ -29,7 +29,10 @@ google_url = "https://www.google.com/search?hl=en_US"
 # query = "how is the weather in london" # OK <span class="vk_gy vk_sh" id="wob_dc">Clear with periodic clouds</span>
 
 # KNOWLEDGE GRAPH
-query = "the office cast" # OK
+# query = "the office cast" # OK
+
+google_url = "https://www.google.de/search?hl=de_DE"
+query = "wie alt ist linux torvalds"
 
 print("Question: ", query)
 
@@ -87,7 +90,7 @@ kno_top = html.find_all("div", class_="dAassd")
 if kno_top:
     print("knot answer: ")
     for element in kno_top:
-        print("* ", element.div.text, " = ", element.div.next_sibling.text)
+        print("* ", element.div.text, "..", element.div.next_sibling.text)
 
 # # Knowledge Graph - top (list) ( eg: the office cast )
 # kno_top=$(echo "$google_html" | pup 'div.dAassd json{}'  | jq -r '.[] | .children | .[] | .text' | sed ':a;N;$!ba;s/\n/ /g' | sed 's/null/\n/g' | awk '{$1=$1;print "* " $0}' | sed '/^* $/d'| recode html..ISO-8859-1)
@@ -104,7 +107,7 @@ if res1:
 
 lyrics = html.find("div", class_="bbVIQb")
 if lyrics:
-    print("answer: ", lyrics.text)
+    print("lyrics answer: ", lyrics.text)
 
 # # Lyrics ( eg: gecgecgec lyrics )
 # lyrics="$(echo "$google_html" | pup 'div.bbVIQb text{}' | recode html..ISO-8859-1)"
