@@ -118,11 +118,6 @@ def getopts(argv):
 if __name__ == "__main__":
     getopts(sys.argv[1:])
 
-    # print("parameters: ", sys.argv[1:])
-    # print("raw:", raw)
-    # print("quiet:", quiet)
-    # print("found question: ", query)
-
 #############################
 #####   Raw formatting  #####
 #############################
