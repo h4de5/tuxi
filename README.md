@@ -26,6 +26,24 @@ result.
 
 ## Installation
 
+### cURL
+
+cURL **tuxi** to your **$PATH** and give execute permissions.
+
+```sh
+$ sudo curl -sL "https://raw.githubusercontent.com/h4de5/tuxi/python-port/tuxi.py" -o /usr/local/bin/tuxi
+$ sudo chmod +x /usr/local/bin/tuxi
+```
+
+> To update, just do `curl` again, no need to `chmod` anymore.
+> To uninstall, simply remove `tuxi` from your **$PATH**, for example `sudo rm -f /usr/local/bin/tuxi`.
+
+### python pip
+
+```sh
+python3 -m pip install -r requirements.txt
+```
+
 ### python virtualenv
 
 ```sh
@@ -66,6 +84,7 @@ Options:
   -q                    Only output search results.
                         (silences "Did you mean?", greeting, usage)
   -l                    Language ISO Code - e.g. en_US or de_DE.
+  -a                    Return all matching result types.
 
 Report bugs at https://github.com/Bugswriter/tuxi/issues.
 ```

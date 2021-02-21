@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # vim: set fileencoding=utf8 :
 
 import sys, getopt, locale
@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 #####      Constants      #####
 ###############################
 
-LANGUAGE = "de_DE"
+LANGUAGE = ""
 
 
 def help_text():
@@ -24,6 +24,7 @@ def help_text():
     print("  -q                    Only output search results.")
     print("                        (silences \"Did you mean?\", greeting, usage)")
     print("  -l                    Language ISO Code - e.g. en_US or de_DE.")
+    print("  -a                    Return all matching result types.")
     print("")
     print("%sReport bugs at%s %shttps://github.com/h4de5/tuxi/issues%s" % (G, N, C, N))
 
@@ -74,6 +75,7 @@ C = "\033[1;36m"  # Cyan
 # options
 raw = False
 quiet = False
+allresults = False
 query = []
 
 
@@ -84,6 +86,8 @@ def output(*message):
         print(''.join(message))
     else:
         print("%s---%s\n%s\n%s---%s" % (G, N, ''.join(message), G, N))
+    if not allresults:
+        exit(0)
 
 
 #############################
@@ -94,9 +98,9 @@ def output(*message):
 # -r : raw search result
 # -q : silences greeting and did you mean
 def getopts(argv):
-    global raw, quiet, query, LANG
+    global raw, quiet, query, allresults, LANG
     try:
-        opts, args = getopt.getopt(argv, "hrql:")
+        opts, args = getopt.getopt(argv, "hrqal:")
     except getopt.GetoptError:
         help_text()
         sys.exit(2)
@@ -109,6 +113,8 @@ def getopts(argv):
             raw = True
         elif opt == '-q':
             quiet = True
+        elif opt == '-a':
+            allresults = True
         elif opt == '-l':
             LANG = arg
 
@@ -279,8 +285,8 @@ currency and output(currency.text)
 # [ -n "$trans" ] && output "$trans" && exit
 trans = google_html.find("div", class_="g9WsWb")
 if trans:
-    trans = trans.find("pre", class_="XcVN5d")
-    trans and print(trans.text)
+    trans2 = trans.find("pre", class_="XcVN5d")
+    trans2 and output(trans2.text)
 
 
 # # Knowledge Graph - right ( eg: the office )
@@ -289,7 +295,7 @@ if trans:
 kno_right = google_html.find("div", class_="kno-rdesc")
 if kno_right:
     kno_right = kno_right.find("span")
-    kno_right and print(kno_right.text)
+    kno_right and output(kno_right.text)
 
 
 # does not work, because result is set in javascript
@@ -299,7 +305,7 @@ if random:
     for element in random:
         if element["aria-hidden"] == "false":
             result += element.text
-    random and print(random)
+    random and output(random)
 
 # # Else
 # error_msg "No Result!" && exit 1
