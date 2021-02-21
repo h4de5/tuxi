@@ -307,5 +307,7 @@ if random:
             result += element.text
     random and output(random)
 
-# # Else
-# error_msg "No Result!" && exit 1
+# Else
+if not allresults:
+    error_msg("No Result!")
+    exit(1)
