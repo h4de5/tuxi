@@ -38,19 +38,19 @@ $ sudo chmod +x /usr/local/bin/tuxi
 > To update, just do `curl` again, no need to `chmod` anymore.
 > To uninstall, simply remove `tuxi` from your **$PATH**, for example `sudo rm -f /usr/local/bin/tuxi`.
 
-### python pip
-
-```sh
-python3 -m pip install -r requirements.txt
-```
-
-### python virtualenv
+### python in virtualenv
 
 ```sh
 python3 -m pip install virtualenv
 python3 -m virtualenv virtualenv
 source virtualenv/bin/activate
-python3 -m pip install requests beautifulsoup4
+python3 -m pip install -r requirements.txt
+```
+
+### python in local
+
+```sh
+python3 -m pip install -r requirements.txt
 ```
 
 ## Usage
